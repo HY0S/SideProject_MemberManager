@@ -2,6 +2,7 @@ package com.holdempub.membermanager.ui;
 
 import com.holdempub.membermanager.data.BingoRepository;
 import com.holdempub.membermanager.data.MemberRepository;
+import com.holdempub.membermanager.data.ScoreCriteriaRepository;
 
 import javax.swing.*;
 import java.nio.file.Path;
@@ -22,6 +23,7 @@ public class MainFrame extends JFrame {
     public MainFrame(Path dataPath) {
         this.memberRepo = new MemberRepository(dataPath);
         this.bingoRepo = new BingoRepository(dataPath);
+        ScoreCriteriaRepository scoreCriteriaRepo = new ScoreCriteriaRepository(dataPath);
 
         setTitle("홀덤펍 유저 관리");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -31,7 +33,7 @@ public class MainFrame extends JFrame {
         tabbedPane = new JTabbedPane();
         mainPanel = new MainPanel(memberRepo);
         memberManagePanel = new MemberManagePanel(memberRepo, this::refreshAllTabs);
-        scoreManagePanel = new ScoreManagePanel(memberRepo, this::refreshAllTabs);
+        scoreManagePanel = new ScoreManagePanel(memberRepo, scoreCriteriaRepo, this::refreshAllTabs);
         bingoPanel = new BingoPanel(bingoRepo, memberRepo);
 
         tabbedPane.addTab("메인", mainPanel);
