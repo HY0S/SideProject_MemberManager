@@ -18,7 +18,7 @@ public class ScoreManagePanel extends JPanel implements MainFrame.Refreshable {
     private final MemberRepository memberRepo;
     private final ScoreCriteriaRepository criteriaRepo;
     private final Runnable onSave;
-    private final JComboBox<String> memberCombo;
+    private final MemberSearchField memberSearchField;
     private final JLabel currentScoreLabel;
     private final JPanel criterionButtonsPanel;
 
@@ -30,11 +30,10 @@ public class ScoreManagePanel extends JPanel implements MainFrame.Refreshable {
         setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
 
         JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 8));
-        top.add(new JLabel("회원:"));
-        memberCombo = new JComboBox<>();
-        memberCombo.setPreferredSize(new Dimension(160, 28));
-        memberCombo.addActionListener(e -> updateCurrentScoreLabel());
-        top.add(memberCombo);
+        top.add(new JLabel("회원 검색:"));
+        memberSearchField = new MemberSearchField(18);
+        memberSearchField.addSelectionListener(e -> updateCurrentScoreLabel());
+        top.add(memberSearchField);
 
         JButton criteriaSetupBtn = new JButton("기준 설정");
         criteriaSetupBtn.addActionListener(e -> openCriteriaSetup());
@@ -141,7 +140,7 @@ public class ScoreManagePanel extends JPanel implements MainFrame.Refreshable {
     }
 
     private void addScoreByCriterion(int points) {
-        String nick = (String) memberCombo.getSelectedItem();
+        String nick = memberSearchField.getSelectedMember();
         if (nick == null || nick.isEmpty()) {
             JOptionPane.showMessageDialog(this, "회원을 선택하세요.", "선택 필요", JOptionPane.WARNING_MESSAGE);
             return;
@@ -161,7 +160,7 @@ public class ScoreManagePanel extends JPanel implements MainFrame.Refreshable {
     }
 
     private void addCustomScore() {
-        String nick = (String) memberCombo.getSelectedItem();
+        String nick = memberSearchField.getSelectedMember();
         if (nick == null || nick.isEmpty()) {
             JOptionPane.showMessageDialog(this, "회원을 선택하세요.", "선택 필요", JOptionPane.WARNING_MESSAGE);
             return;
@@ -191,7 +190,7 @@ public class ScoreManagePanel extends JPanel implements MainFrame.Refreshable {
     }
 
     private void subtractScore() {
-        String nick = (String) memberCombo.getSelectedItem();
+        String nick = memberSearchField.getSelectedMember();
         if (nick == null || nick.isEmpty()) {
             JOptionPane.showMessageDialog(this, "회원을 선택하세요.", "선택 필요", JOptionPane.WARNING_MESSAGE);
             return;
@@ -228,7 +227,7 @@ public class ScoreManagePanel extends JPanel implements MainFrame.Refreshable {
     }
 
     private void updateCurrentScoreLabel() {
-        String nick = (String) memberCombo.getSelectedItem();
+        String nick = memberSearchField.getSelectedMember();
         if (nick == null || nick.isEmpty()) {
             currentScoreLabel.setText("현재 점수: -");
             return;
@@ -246,14 +245,18 @@ public class ScoreManagePanel extends JPanel implements MainFrame.Refreshable {
     @Override
     public void refresh() {
         List<Member> members = memberRepo.load();
-        String selected = (String) memberCombo.getSelectedItem();
-        memberCombo.removeAllItems();
-        memberCombo.addItem("");
+        List<String> nicknames = new ArrayList<>();
         for (Member m : members) {
-            memberCombo.addItem(m.getNickname());
+            if (m.getNickname() != null && !m.getNickname().isEmpty()) {
+                nicknames.add(m.getNickname());
+            }
         }
-        if (selected != null) {
-            memberCombo.setSelectedItem(selected);
+        String selected = memberSearchField.getSelectedMember();
+        memberSearchField.setMembers(nicknames);
+        if (selected != null && nicknames.contains(selected)) {
+            memberSearchField.setSelectedMember(selected);
+        } else {
+            memberSearchField.setSelectedMember(null);
         }
         updateCurrentScoreLabel();
         refreshCriterionButtons();
